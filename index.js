@@ -2,36 +2,35 @@ import express from "express";
 
 const app = express();
 const port = 419;
-
 const users = [
-  { name: "John", age: 25 },
-  { name: "Jane", age: 24 },
-  { name: "Jim", age: 30 },
-];
+  {
+    id: 1,
+    name: "John Doe",
+    email: "john@email.com",
+    age: 25,
+  },
+  {
+    id: 2,
+    name: "Jane Doe",
+    email: "jane@email.com",
+    age: 30,
+  },
+  {
+    id: 3,
+    name: "Jorja Smith",
+    email: "jorja@email.com",
+    age: 35,  
+  },
+]
 
 app.get("/", (req, res) => {
-  res.send("<h1 style='color:red'> Hello deji!</h1>");
-});
-
-app.get("/about", (req, res) => {
-  res.send("about page");
+  res.send("hello welcome to my personal api server");
 });
 
 app.get("/users", (req, res) => {
-  res.send(users);
+  res.json(users);
 });
 
-app.get("/ab?cd", (req, res) => {
-  res.send("ab?cd");
-});
-
-app.get("/users/:age", (req, res) => {
-  const { age } = req.params;
-  console.log(typeof age);
-  const data = users.filter((user) => user.age === parseInt(age));
-  console.log(data)
-  res.send(data);
-});
 
 app.listen(port, () => {
   console.log(`server is running on port http://localhost:${port}`);
