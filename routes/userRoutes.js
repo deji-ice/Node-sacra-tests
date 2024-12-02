@@ -1,77 +1,28 @@
 import express from "express";
-import db from "../db/conn.js";
-import { ObjectId } from "mongodb";
-const userRoute = express.Router();
+import User from "../models/userModel";
 
-//get request to get all users
-userRoute.get("/", async (req, res) => {
-  const collection = db.collection("users");
-  const result = await collection.find({}).limit(10).toArray();
-  res.status(200).json(result);
+const router = express.Router();
+
+router.get("/", (req, res) => {
+  res.status(200).send("holla");
 });
 
-//post request to create a new user
-userRoute.post("/create", async (req, res) => {
+router.post("/create", async (req, res) => {
   try {
-    const user = req.body;
-    const collection = db.collection("users");
-
-    const result = await collection.insertOne(user); // insert the user object
-
-    res.status(201).json(result); // return the result
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-userRoute.get("/:id", async (req, res) => {
-  try {
-    const userId = new ObjectId(req.params.id);
-    const collection = db.collection("users");
-    const result = await collection.findOne({ _id: userId }); // find the user by id
-    res.status(200).json(result);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-//put request to update a user
-
-userRoute.patch("/update/:id", async (req, res) => {
-  try {
-    const userId = new ObjectId(req.params.id);
-    const collection = db.collection("users");
-    const userData = req.body;
-
-    const result = await collection.updateOne(
-      { _id: userId },
-      { $set: userData }
-    ); // update the user object
-
-    if (result.modifiedCount === 0) {
-      // check if the user was updated
-      res.status(404).json({ message: "No user found to update" });
+    const { username } = req.body; // get the username from the request body
+    if (!username) {
+      return res.status(400).send("Username is required");
     }
-
-    res.status(201).json(result); // return the result
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-userRoute.delete("/delete/:id", async (req, res) => {
-  try {
-    const userId = new ObjectId(req.params.id);
-    const collection = db.collection("users");
-    const result = await collection.deleteOne({ _id: userId }); // delete the user object
-    if (result.deletedCount === 0) {
-      // check if the user was deleted
-      res.status(404).json({ message: "No user found to delete" });
+    const existingUser = await User.findOne({ username }); // check if the user already exists
+    if (existingUser) {
+      return res.status(400).send("Username already exists");
     }
-    res.status(200).json(result); // return the result
+    const user = new User(req.body); // create a new user based on the request body
+    await user.save(); // save the user
+    res.status(201).json("User created successfully");
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message }); // send the error message
   }
 });
 
-export default userRoute;
+export default router;
