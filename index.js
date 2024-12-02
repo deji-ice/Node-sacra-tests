@@ -1,11 +1,14 @@
 import express from "express";
+import dbConnection from "./db/conn.js";
 import userRoute from "./routes/userRoutes.js";
 
 const app = express();
-const port = 419;
-app.use(express.json()); // parse json request body
+const port = 4000;
 
-app.use("/api/v1/users", userRoute) // use "/api/v1/users" for all user routes
+dbConnection() // connect to the database
+
+app.use(express.json()); // parse json request body
+app.use("/api/v1/users", userRoute); // use user router
 
 app.get("/", (req, res) => {
   res.send("hello welcome to my personal api server");
