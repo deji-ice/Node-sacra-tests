@@ -1,19 +1,45 @@
 import User from "../models/userModel.js";
+import bcrypt from "bcrypt";
 
 export const createUser = async (req, res) => {
   try {
-    const { username } = req.body;
-    // get the username from the request body
+    const { username, password } = req.body;
+    // get the username and password from the request body
 
     const existingUser = await User.findOne({ username }); // check if the user already exists
     if (existingUser) {
       return res.status(400).send("Username already exists");
     }
+
     const user = new User(req.body); // create a new user based on the request body
+
+    const saltRounds = 10; // set the salt rounds
+
+    const hashedPassword = await bcrypt.hash(password, saltRounds); // hash the password
+
+    user.password = hashedPassword; // set the hashed password to the user
     await user.save(); // save the user
     res.status(201).json("User created successfully");
   } catch (error) {
     res.status(400).json({ message: error.message }); // send the error message
+  }
+};
+
+export const loginUser = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    const user = await User.findOne({ username }); // find the user based on the username
+
+    if (!user) return res.status(404).json("User not found");
+
+    const validPassword = await bcrypt.compare(password, user.password); // compare the password with the hashed password
+
+    if (!validPassword) return res.status(400).json("Invalid password"); // send an error message if the password is invalid
+
+    res.status(200).json("Login successful"); // send a success message
+  } catch (error) {
+    res.status(500).json({ message: error.message }); // send the error message
   }
 };
 
