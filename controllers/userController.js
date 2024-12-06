@@ -25,7 +25,7 @@ export const createUser = async (req, res) => {
   }
 };
 
-export const loginUser = async (req, res) => {
+export const loginUser = async (req, res, next) => {
   try {
     const { username, password } = req.body;
 
