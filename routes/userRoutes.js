@@ -7,13 +7,19 @@ import {
   loginUser,
   updateUser,
 } from "../controllers/userController.js";
+import { validateUser } from "../middlewares/validateUser.js";
+import { loginLimiter } from "../middlewares/loginLimiter.js";
 
 const router = express.Router();
 
 router.post("/create", createUser); // create a new user
-router.post("/login", loginUser); // login a user
 
-router.get("/", getAllUsers); // get all users
+
+// loginLimit is a middleware that limits the number of requests to the login route
+router.post("/login",loginLimiter, loginUser); // login a user
+
+// validateUser is a middleware that checks if the user is authorized to access the route
+router.get("/", validateUser, getAllUsers); // get all users
 
 router.get("/:id", getSingleUser); // get a single user
 
