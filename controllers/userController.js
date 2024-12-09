@@ -1,3 +1,4 @@
+import generateToken from "../lib/generateToken.js";
 import User from "../models/userModel.js";
 import bcrypt from "bcrypt";
 
@@ -37,7 +38,14 @@ export const loginUser = async (req, res, next) => {
 
     if (!validPassword) return res.status(400).json("Invalid password"); // send an error message if the password is invalid
 
-    res.status(200).json("Login successful"); // send a success message
+    //generate jwt token if user is authenticated
+    const token = await generateToken(user._id); // generate a token based on the user id
+   
+    res.status(200).json({
+      message: "User logged in successfully",
+      token: token,
+    }); // send a success message
+    
   } catch (error) {
     res.status(500).json({ message: error.message }); // send the error message
   }
