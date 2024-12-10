@@ -2,7 +2,7 @@ import { generateOTP } from "../lib/generateOTP.js";
 import generateToken from "../lib/generateToken.js";
 import User from "../models/userModel.js";
 import bcrypt from "bcrypt";
-import nodemailer from "nodemailer"
+import nodemailer from "nodemailer";
 
 export const createUser = async (req, res) => {
   try {
@@ -133,14 +133,119 @@ export const sendOTP = async (req, res) => {
       port: 465,
       secure: true,
       auth: {
-        user: "your_email@gmail.com",
-        pass: "your_app_password",
+        user: "dejixice@gmail.com",
+        pass: process.env.GMAIL_APP_PASSWORD,
       },
     });
 
-    res.status(200).json({ message: "OTP sent successfully", OTP: otp });
+    // send mail with defined transport object
+    const mailOptions = {
+      from: "dejixice@gmail.com",
+      to: user.email,
+      subject: "Your One-Time Password (OTP) Code",
+      html:`<html>
+  <head>
+    <style>
+      body {
+        font-family: 'Montserrat', Arial, sans-serif;
+        background-color: #f9fafb;
+        margin: 0;
+        padding: 0;
+        line-height: 1.6;
+      }
+      .container {
+        width: 100%;
+        max-width: 600px;
+        background-color: #ffffff;
+        margin: 40px auto;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+      .header {
+        text-align: center;
+        color: #2c3e50;
+      }
+      .header h2 {
+        font-size: 24px;
+        margin-bottom: 10px;
+        color: #34495e;
+      }
+      .content {
+        color: #555555;
+        font-size: 16px;
+        margin: 20px 0;
+      }
+      .otp {
+        font-size: 32px;
+        font-weight: 600;
+        color: #e74c3c;
+        text-align: center;
+        margin: 20px 0;
+        letter-spacing: 2px;
+      }
+      .button {
+        display: inline-block;
+        background-color: #3498db;
+        color: #ffffff;
+        padding: 12px 30px;
+        font-size: 16px;
+        font-weight: 500;
+        text-decoration: none;
+        border-radius: 6px;
+        text-align: center;
+        transition: background-color 0.3s ease;
+        margin: 20px 0;
+      }
+      .button:hover {
+        background-color: #2980b9;
+      }
+      .footer {
+        text-align: center;
+        color: #7f8c8d;
+        font-size: 14px;
+        margin-top: 30px;
+      }
+      .footer p {
+        margin: 5px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h2>Password Reset Request</h2>
+      </div>
+      <div class="content">
+        <p>Hello,</p>
+        <p>We received a request to reset your password. Use the One-Time Password (OTP) below to complete the process:</p>
+        <div class="otp">
+          ${otp}
+        </div>
+        <p>The OTP is valid for the next 5 minutes. Please do not share it with anyone.</p>
+        <p>If you did not request this, you can safely ignore this email. Your account remains secure.</p>
+        <a href="#" class="button">Reset Password</a>
+      </div>
+      <div class="footer">
+        <p>Thank you for using our service.</p>
+        <p>If you have any questions, feel free to contact us.</p>
+      </div>
+    </div>
+  </body>
+</html>
+`,
+    };
 
-
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email: ", error);
+        res.status(500).json({ message: error.message });
+      } else {
+        console.log("Email sent: ", info.response);
+        res.status(200).json({ message: "OTP sent successfully", OTP: otp });
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
