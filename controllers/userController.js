@@ -1,6 +1,8 @@
+import { generateOTP } from "../lib/generateOTP.js";
 import generateToken from "../lib/generateToken.js";
 import User from "../models/userModel.js";
 import bcrypt from "bcrypt";
+import nodemailer from "nodemailer"
 
 export const createUser = async (req, res) => {
   try {
@@ -40,12 +42,11 @@ export const loginUser = async (req, res, next) => {
 
     //generate jwt token if user is authenticated
     const token = await generateToken(user._id); // generate a token based on the user id
-   
+
     res.status(200).json({
       message: "User logged in successfully",
       token: token,
     }); // send a success message
-    
   } catch (error) {
     res.status(500).json({ message: error.message }); // send the error message
   }
@@ -106,6 +107,40 @@ export const deleteUser = async (req, res) => {
     const user = await User.findByIdAndDelete(id); // find a user based on the id and delete it
     if (!user) return res.status(404).json("User not found");
     res.status(200).json({ message: "User deleted successfully", data: user });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const sendOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json("User not found");
+
+    // Remove ObjectId wrapper from user._id
+    const userId = user._id
+      .toString()
+      .replace(/^new ObjectId\("(.+)"\)$/, "$1");
+
+    //generate otp and pass userId to it
+    const otp = await generateOTP(userId);
+
+    // create reusable transporter object using the default SMTP transport
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: "your_email@gmail.com",
+        pass: "your_app_password",
+      },
+    });
+
+    res.status(200).json({ message: "OTP sent successfully", OTP: otp });
+
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
