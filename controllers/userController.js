@@ -143,7 +143,7 @@ export const sendOTP = async (req, res) => {
       from: "dejixice@gmail.com",
       to: user.email,
       subject: "Your One-Time Password (OTP) Code",
-      html:`<html>
+      html: `<html>
   <head>
     <style>
       body {
@@ -185,6 +185,7 @@ export const sendOTP = async (req, res) => {
         margin: 20px 0;
         letter-spacing: 2px;
       }
+
       .button {
         display: inline-block;
         background-color: #3498db;
@@ -246,6 +247,27 @@ export const sendOTP = async (req, res) => {
         res.status(200).json({ message: "OTP sent successfully", OTP: otp });
       }
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//login with OTP
+export const loginWithOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json("User not found");
+
+    //generate jwt token if user is authenticated
+    const token = await generateToken(user._id); // generate a token based on the user id
+
+    res.status(200).json({
+      message: "User logged in successfully with OTP",
+      token: token,
+    }); // send a success message
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
